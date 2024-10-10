@@ -64,16 +64,23 @@ var aibotCmd = &cobra.Command{
 		}
 
 		// Меню для бота
-		menu := &telebot.ReplyMarkup{
-			ReplyKeyboard: [][]telebot.ReplyButton{
-				{{Text: "Ask на основі векторної бази"}}, // Основна дія
-			},
-		}
+		//menu := &telebot.ReplyMarkup{
+		//	ReplyKeyboard: [][]telebot.ReplyButton{
+		//		{{Text: "Ask на основі векторної бази"}}, // Основна дія
+		//	},
+		//}
 
 		// Обробка команди /start
+		// Форматуємо повідомлення перед відправкою у /start з використанням HTML
 		aibot.Handle("/start", func(m telebot.Context) error {
 			log.Printf("Користувач ID %d почав сесію.", m.Sender().ID)
-			return m.Send("Запрошуємо! Введіть ваш запит для пошуку через Pinecone та GPT-4 для отримання відповіді.", menu)
+
+			// Форматуємо повідомлення перед відправкою
+			msg := fmt.Sprintf("Цей чат-бот створений для надавання інформації про людину та її трудовий досвід. Версія чат-боту: %s", appVersion)
+
+			return m.Send(msg, &telebot.SendOptions{
+				ParseMode: telebot.ModeHTML, // Використовуємо HTML форматування
+			})
 		})
 
 		// Обробка текстових запитів
@@ -109,7 +116,7 @@ var aibotCmd = &cobra.Command{
 			log.Printf("Повернена відповідь від ChatGPT: %s", answer)
 
 			// Повернення результату користувачеві
-			return m.Send(fmt.Sprintf("Відповідь: %s", answer))
+			return m.Send(fmt.Sprintf("%s", answer))
 		})
 
 		// Старт бота
@@ -223,7 +230,7 @@ func generateFinalAnswerFromOpenAI(query string, matches *pinecone.QueryVectorsR
 		Messages: []openai.ChatCompletionMessage{
 			{
 				Role:    openai.ChatMessageRoleSystem,
-				Content: "Ти чат-асистент, який відповідає на основі даних з векторної бази.",
+				Content: "Ти чат-асистент, який відповідає на основі даних з векторної бази. Відповідай чітко та конкретно. відмовідай в форматі markdown. Також, на запитання по типу, Що ти можеш, відповідай що ти чат-асистент який допомогає ознайомитись з резюме.",
 			},
 			{
 				Role:    openai.ChatMessageRoleUser,
